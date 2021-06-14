@@ -1,0 +1,13 @@
+{
+    "entryLog": {
+        "entryLogID": "EntryLog1",
+        "facilityID": "Facility1",
+        "year": "1995",
+        "sex": "1",
+        "entryTime": "2021-06-14 17:29:30",
+        "personalID": "Person1",
+        "name": "Chpark",
+        "phone": "010-6223-2277",
+        "address": "경기도 수원시"
+    }
+}
