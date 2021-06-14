@@ -7,6 +7,9 @@
 # Exit on first error
 set -e
 
+sudo chown -R bstudent:bstudent ../first-network/*
+rm -rf ./javascript/wallet/*
+
 # don't rewrite paths for Windows Git Bash users
 export MSYS_NO_PATHCONV=1
 starttime=$(date +%s)
@@ -35,7 +38,6 @@ else
 	echo Supported chaincode languages are: go, javascript, and typescript
 	exit 1
 fi
-
 
 # clean the keystore
 rm -rf ./hfc-key-store
@@ -81,6 +83,19 @@ docker exec \
     -p "$CC_SRC_PATH" \
     -l "$CC_RUNTIME_LANGUAGE"
 
+echo "Installing smart contract on peer0.org3.dmc.ajou.ac.kr"
+docker exec \
+  -e CORE_PEER_LOCALMSPID=Org3MSP \
+  -e CORE_PEER_ADDRESS=peer0.org3.dmc.ajou.ac.kr:11051 \
+  -e CORE_PEER_MSPCONFIGPATH=${ORG3_MSPCONFIGPATH} \
+  -e CORE_PEER_TLS_ROOTCERT_FILE=${ORG3_TLS_ROOTCERT_FILE} \
+  cli \
+  peer chaincode install \
+    -n fabcar \
+    -v 1.0 \
+    -p "$CC_SRC_PATH" \
+    -l "$CC_RUNTIME_LANGUAGE"    
+
 echo "Instantiating smart contract on dmcchannel"
 docker exec \
   -e CORE_PEER_LOCALMSPID=Org1MSP \
@@ -93,7 +108,7 @@ docker exec \
     -l "$CC_RUNTIME_LANGUAGE" \
     -v 1.0 \
     -c '{"Args":[]}' \
-    -P "AND('Org1MSP.member','Org2MSP.member')" \
+    -P "OR('Org1MSP.member','Org2MSP.member','Org3MSP.member')" \
     --tls \
     --cafile ${ORDERER_TLS_ROOTCERT_FILE} \
     --peerAddresses peer0.org1.dmc.ajou.ac.kr:7051 \
@@ -103,7 +118,7 @@ echo "Waiting for instantiation request to be committed ..."
 sleep 10
 
 echo "Submitting initLedger transaction to smart contract on dmcchannel"
-echo "The transaction is sent to the two peers with the chaincode installed (peer0.org1.dmc.ajou.ac.kr and peer0.org2.dmc.ajou.ac.kr) so that chaincode is built before receiving the following requests"
+# echo "The transaction is sent to the two peers with the chaincode installed (peer0.org1.dmc.ajou.ac.kr and peer0.org2.dmc.ajou.ac.kr) so that chaincode is built before receiving the following requests"
 docker exec \
   -e CORE_PEER_LOCALMSPID=Org1MSP \
   -e CORE_PEER_MSPCONFIGPATH=${ORG1_MSPCONFIGPATH} \
@@ -117,9 +132,7 @@ docker exec \
     --tls \
     --cafile ${ORDERER_TLS_ROOTCERT_FILE} \
     --peerAddresses peer0.org1.dmc.ajou.ac.kr:7051 \
-    --peerAddresses peer0.org2.dmc.ajou.ac.kr:10051 \
     --tlsRootCertFiles ${ORG1_TLS_ROOTCERT_FILE} \
-    --tlsRootCertFiles ${ORG2_TLS_ROOTCERT_FILE}
 set +x
 
 cat <<EOF

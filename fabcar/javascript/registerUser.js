@@ -25,7 +25,7 @@ async function main() {
         }
 
         // Check to see if we've already enrolled the admin user.
-        const adminExists = await wallet.exists('admin');
+        const adminExists = await wallet.exists('admin1');
         if (!adminExists) {
             console.log('An identity for the admin user "admin" does not exist in the wallet');
             console.log('Run the enrollAdmin.js application before retrying');
@@ -34,7 +34,7 @@ async function main() {
 
         // Create a new gateway for connecting to our peer node.
         const gateway = new Gateway();
-        await gateway.connect(ccpPath, { wallet, identity: 'admin', discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccpPath, { wallet, identity: 'admin1', discovery: { enabled: true, asLocalhost: true } });
 
         // Get the CA client object from the gateway for interacting with the CA.
         const ca = gateway.getClient().getCertificateAuthority();
