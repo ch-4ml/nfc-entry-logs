@@ -1,0 +1,77 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer2.dmc.ajou.ac.kr:
+  orderer3.dmc.ajou.ac.kr:
+  orderer4.dmc.ajou.ac.kr:
+  orderer5.dmc.ajou.ac.kr:
+
+networks:
+  byfn:
+
+services:
+
+  orderer2.dmc.ajou.ac.kr:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer2.dmc.ajou.ac.kr
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/dmc.ajou.ac.kr/orderers/orderer2.dmc.ajou.ac.kr/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/dmc.ajou.ac.kr/orderers/orderer2.dmc.ajou.ac.kr/tls/:/var/hyperledger/orderer/tls
+        - orderer2.dmc.ajou.ac.kr:/var/hyperledger/production/orderer
+    ports:
+    - 8050:7050
+
+  orderer3.dmc.ajou.ac.kr:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer3.dmc.ajou.ac.kr
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/dmc.ajou.ac.kr/orderers/orderer3.dmc.ajou.ac.kr/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/dmc.ajou.ac.kr/orderers/orderer3.dmc.ajou.ac.kr/tls/:/var/hyperledger/orderer/tls
+        - orderer3.dmc.ajou.ac.kr:/var/hyperledger/production/orderer
+    ports:
+    - 9050:7050
+
+  orderer4.dmc.ajou.ac.kr:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer4.dmc.ajou.ac.kr
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/dmc.ajou.ac.kr/orderers/orderer4.dmc.ajou.ac.kr/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/dmc.ajou.ac.kr/orderers/orderer4.dmc.ajou.ac.kr/tls/:/var/hyperledger/orderer/tls
+        - orderer4.dmc.ajou.ac.kr:/var/hyperledger/production/orderer
+    ports:
+    - 10050:7050
+
+  orderer5.dmc.ajou.ac.kr:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer5.dmc.ajou.ac.kr
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/dmc.ajou.ac.kr/orderers/orderer5.dmc.ajou.ac.kr/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/dmc.ajou.ac.kr/orderers/orderer5.dmc.ajou.ac.kr/tls/:/var/hyperledger/orderer/tls
+        - orderer5.dmc.ajou.ac.kr:/var/hyperledger/production/orderer
+    ports:
+    - 11050:7050
