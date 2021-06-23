@@ -17,29 +17,9 @@ export MSYS_NO_PATHCONV=1
 starttime=$(date +%s)
 CC_SRC_LANGUAGE=${1:-"go"}
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
-if [ "$CC_SRC_LANGUAGE" = "go" -o "$CC_SRC_LANGUAGE" = "golang"  ]; then
-	CC_RUNTIME_LANGUAGE=golang
-	CC_SRC_PATH=github.com/chaincode/entryLog/go
-elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
-	CC_RUNTIME_LANGUAGE=java
-	CC_SRC_PATH=/opt/gopath/src/github.com/chaincode/fabcar/java
-elif [ "$CC_SRC_LANGUAGE" = "javascript" ]; then
-	CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
-	CC_SRC_PATH=/opt/gopath/src/github.com/chaincode/fabcar/javascript
-elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
-	CC_RUNTIME_LANGUAGE=node # chaincode runtime language is node.js
-	CC_SRC_PATH=/opt/gopath/src/github.com/chaincode/fabcar/typescript
-	echo Compiling TypeScript code into JavaScript ...
-	pushd ../chaincode/fabcar/typescript
-	npm install
-	npm run build
-	popd
-	echo Finished compiling TypeScript code into JavaScript
-else
-	echo The chaincode language ${CC_SRC_LANGUAGE} is not supported by this script
-	echo Supported chaincode languages are: go, javascript, and typescript
-	exit 1
-fi
+CC_RUNTIME_LANGUAGE=golang
+CC_SRC_PATH=github.com/chaincode/entryLog/go
+
 
 # clean the keystore
 rm -rf ./hfc-key-store
@@ -67,7 +47,7 @@ docker exec \
   -e CORE_PEER_TLS_ROOTCERT_FILE=${ORG1_TLS_ROOTCERT_FILE} \
   cli \
   peer chaincode install \
-    -n fabcar \
+    -n entryLog \
     -v 1.0 \
     -p "$CC_SRC_PATH" \
     -l "$CC_RUNTIME_LANGUAGE"
@@ -80,7 +60,7 @@ docker exec \
   -e CORE_PEER_TLS_ROOTCERT_FILE=${ORG2_TLS_ROOTCERT_FILE} \
   cli \
   peer chaincode install \
-    -n fabcar \
+    -n entryLog \
     -v 1.0 \
     -p "$CC_SRC_PATH" \
     -l "$CC_RUNTIME_LANGUAGE"
@@ -93,7 +73,7 @@ docker exec \
   -e CORE_PEER_TLS_ROOTCERT_FILE=${ORG3_TLS_ROOTCERT_FILE} \
   cli \
   peer chaincode install \
-    -n fabcar \
+    -n entryLog \
     -v 1.0 \
     -p "$CC_SRC_PATH" \
     -l "$CC_RUNTIME_LANGUAGE"    
@@ -106,7 +86,7 @@ docker exec \
   peer chaincode instantiate \
     -o orderer.dmc.ajou.ac.kr:7050 \
     -C dmcchannel \
-    -n fabcar \
+    -n entryLog \
     -l "$CC_RUNTIME_LANGUAGE" \
     -v 1.0 \
     -c '{"Args":[]}' \
@@ -118,28 +98,14 @@ docker exec \
     --tlsRootCertFiles ${ORG1_TLS_ROOTCERT_FILE} \
 
 echo "Waiting for instantiation request to be committed ..."
-sleep 10
+sleep 5
 
-export entryLogValue=$(echo -n "{\"entryLogID\":\"EntryLog1\",\"facilityID\":\"Facility1\",\"year\":\"1995\",\"sex\":\"1\",\"entryTime\":\"2021-06-14 17:29:30\",\"personalID\":\"Person1\",\"name\":\"Chpark\",\"phone\":\"010-6223-2277\",\"address\":\"경기도 수원시\"}" | base64 | tr -d \\n)
+pwd
 
-echo "Submitting initLedger transaction to smart contract on dmcchannel"
-# echo "The transaction is sent to the two peers with the chaincode installed (peer0.org1.dmc.ajou.ac.kr and peer0.org2.dmc.ajou.ac.kr) so that chaincode is built before receiving the following requests"
-docker exec \
-  -e CORE_PEER_LOCALMSPID=Org1MSP \
-  -e CORE_PEER_MSPCONFIGPATH=${ORG1_MSPCONFIGPATH} \
-  cli \
-  peer chaincode invoke \
-    -o orderer.dmc.ajou.ac.kr:7050 \
-    -C dmcchannel \
-    -n fabcar \
-    -c '{"Args":["setEntryLog"]}' \
-    --transient "{\"entryLog\":\"$entryLogValue\"}" \
-    --waitForEvent \
-    --tls \
-    --cafile ${ORDERER_TLS_ROOTCERT_FILE} \
-    --peerAddresses peer0.org1.dmc.ajou.ac.kr:7051 \
-    --tlsRootCertFiles ${ORG1_TLS_ROOTCERT_FILE} \
-set +x
+cd ..
+cd app1 && node ./enrollAdmin.js && node ./registerUser && cd ..
+cd app2 && node ./enrollAdmin.js && node ./registerUser && cd ..
+cd app3 && node ./enrollAdmin.js && node ./registerUser && cd ..
 
 cat <<EOF
 
